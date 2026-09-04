@@ -2,6 +2,8 @@
 
 Target gateway board: Waveshare ESP32-S3-LCD-1.47.
 
+Gateway firmware lives in the companion repo: https://github.com/drgncabe/ragnar-link-gateway
+
 The Waveshare wiki lists the board as an ESP32-S3R8 with 16 MB flash, 8 MB PSRAM, 2.4 GHz Wi-Fi/BLE, USB serial, TF card slot, RGB LED, and a 1.47 inch 172 x 320 ST7789 LCD. The LCD pin map used by the firmware is:
 
 | LCD signal | ESP32-S3 GPIO |
@@ -15,5 +17,4 @@ The Waveshare wiki lists the board as an ESP32-S3R8 with 16 MB flash, 8 MB PSRAM
 
 The onboard RGB LED is GPIO38. This first firmware does not require it.
 
-The ESP32-S3-LCD-1.47B variant uses GPIO46 for the display backlight, so change `TFT_BL` in `firmware/ragnar_espnow_gateway/platformio.ini` if using the B board.
-
+The ESP32-S3-LCD-1.47B variant uses GPIO46 for the display backlight, so change `TFT_BL` in the gateway firmware repo if using the B board.

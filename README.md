@@ -7,8 +7,9 @@ The repo intentionally keeps the bridge outside Ragnar core code:
 - `host/` contains the Python daemon, serial protocol code, and tests.
 - `installer/` contains the Ragnar installer script.
 - `systemd/` contains the Linux service unit.
-- `firmware/ragnar_espnow_gateway/` contains the ESP32-S3 PlatformIO firmware.
 - `docs/` contains the USB protocol, ESP-NOW protocol, hardware notes, and the IRIS implementation contract.
+
+ESP32-S3 gateway firmware lives in the companion repo: https://github.com/drgncabe/ragnar-link-gateway
 
 ## First Install On Ragnar
 
@@ -37,18 +38,7 @@ pip install -e .
 python -m unittest discover -s tests
 ```
 
-Firmware build:
-
-```sh
-cd firmware/ragnar_espnow_gateway
-pio run
-```
-
-Firmware upload:
-
-```sh
-pio run -t upload
-```
+Gateway firmware build and flashing instructions live in the companion `ragnar-link-gateway` repo.
 
 ## Current Integration Shape
 
