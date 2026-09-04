@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ragnar-link"
+version = "0.1.0"
+description = "Ragnar-side USB bridge for an ESP-NOW Waveshare ESP32-S3 gateway"
+requires-python = ">=3.9"
+dependencies = [
+]
+
+[project.optional-dependencies]
+dev = [
+]
+
+[project.scripts]
+ragnar-linkd = "ragnar_link.daemon:main"
+ragnar-link-send = "ragnar_link.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["ragnar_link*"]

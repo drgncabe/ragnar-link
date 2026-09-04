@@ -1,0 +1,8 @@
+serial_port: auto
+baud: 115200
+node_name: ragnar
+espnow_channel: 6
+state_file: /run/ragnar-link/state.json
+state_command:
+poll_interval_s: 1.0
+heartbeat_interval_s: 10.0
