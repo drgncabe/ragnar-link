@@ -4,26 +4,35 @@ import logging
 import os
 from pathlib import Path
 import select
-import termios
 import threading
-import tty
+import time
 from typing import Callable
 
 from .protocol import HostFrame, parse_json_line
+
+try:
+    import termios
+    import tty
+except ImportError:
+    termios = None
+    tty = None
 
 LOGGER = logging.getLogger(__name__)
 
 
 class SerialBridge:
-    def __init__(self, port: str, baud: int, timeout_s: float = 0.2):
+    def __init__(self, port: str, baud: int, timeout_s: float = 0.2, write_timeout_s: float = 2.0):
         self.port = port
         self.baud = baud
         self.timeout_s = timeout_s
+        self.write_timeout_s = write_timeout_s
         self._fd: int | None = None
         self._buffer = bytearray()
         self._lock = threading.Lock()
 
     def open(self) -> None:
+        if termios is None or tty is None:
+            raise RuntimeError("serial bridge requires Linux/POSIX termios support")
         resolved_port = resolve_serial_port(self.port)
         self._fd = os.open(resolved_port, os.O_RDWR | os.O_NOCTTY | os.O_NONBLOCK)
         attrs = termios.tcgetattr(self._fd)
@@ -46,7 +55,7 @@ class SerialBridge:
             raise RuntimeError("serial bridge is not open")
         data = frame.to_json_line()
         with self._lock:
-            os.write(self._fd, data)
+            write_all(self._fd, data, self.write_timeout_s)
         LOGGER.debug("host->gateway %s", data.decode("utf-8").rstrip())
 
     def read_available(self, on_frame: Callable[[dict], None]) -> None:
@@ -79,6 +88,29 @@ def _termios_speed(baud: int) -> int:
     if not hasattr(termios, speed_name):
         raise ValueError(f"unsupported baud rate: {baud}")
     return getattr(termios, speed_name)
+
+
+def write_all(fd: int, data: bytes, timeout_s: float) -> None:
+    deadline = time.monotonic() + timeout_s
+    view = memoryview(data)
+    offset = 0
+
+    while offset < len(data):
+        try:
+            written = os.write(fd, view[offset:])
+            if written == 0:
+                raise BlockingIOError("serial write accepted zero bytes")
+            offset += written
+            continue
+        except InterruptedError:
+            continue
+        except BlockingIOError:
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                raise TimeoutError(f"timed out writing {len(data)} bytes to serial gateway")
+            _, writable, _ = select.select([], [fd], [], min(remaining, 0.25))
+            if not writable and time.monotonic() >= deadline:
+                raise TimeoutError(f"timed out writing {len(data)} bytes to serial gateway")
 
 
 def resolve_serial_port(port: str) -> str:
